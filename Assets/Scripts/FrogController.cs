@@ -36,7 +36,6 @@ public class FrogController : MonoBehaviour
     [SerializeField] private float airDrag = 0.05f;
     [SerializeField] private float gravityMultiplier = 10f;
     [SerializeField] private float additionalFallAcceleration = 20f;
-    [SerializeField] private float sprintSpinSpeed = 360f;
 
     [Header("Jump Charge")]
     [SerializeField] private float minJumpForce = 6f;
@@ -288,7 +287,7 @@ public class FrogController : MonoBehaviour
         float speedMultiplier = GetChainSpeedMultiplier() * (rolling ? rollSpeedMultiplier : 1f);
         float maxSpeed = (grounded ? maxGroundSpeed : maxAirSpeed) * speedMultiplier;
 
-        if (moveDirection.sqrMagnitude > 0.01f)
+        if (moveDirection.sqrMagnitude > 0.01f && !sliding)
         {
             body.AddForce(moveDirection * acceleration, ForceMode.Acceleration);
             body.linearDamping = grounded ? 0f : airDrag;
@@ -345,17 +344,6 @@ public class FrogController : MonoBehaviour
                 body.AddTorque(torque, ForceMode.Acceleration);
             }
         }
-    }
-
-    private void LateUpdate()
-    {
-        if (!rolling)
-        {
-            return;
-        }
-
-        Transform target = modelRoot != null ? modelRoot : transform;
-        target.Rotate(Vector3.right, sprintSpinSpeed * Time.deltaTime, Space.Self);
     }
 
     private void ApplyExtraGravity()
