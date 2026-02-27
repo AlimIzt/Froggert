@@ -10,7 +10,6 @@ public class FrogController : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private Collider bodyCollider;
     [SerializeField] private Transform modelRoot;
-    [SerializeField] private TongueGrapple tongueGrapple;
 
     [Header("Input")]
     [SerializeField] private InputActionReference moveAction;
@@ -42,7 +41,6 @@ public class FrogController : MonoBehaviour
     [SerializeField] private float maxJumpForce = 13f;
     [SerializeField] private float maxChargeTime = 0.7f;
     [SerializeField] private float jumpForwardBoost = 2.5f;
-    [SerializeField] private float grappleJumpMomentumMultiplier = 2.5f;
 
     [Header("Jump Momentum Chain")]
     [SerializeField] private float chainResetTime = 1.1f;
@@ -121,10 +119,6 @@ public class FrogController : MonoBehaviour
             body.constraints = RigidbodyConstraints.FreezeRotation;
         }
 
-        if (tongueGrapple == null)
-        {
-            tongueGrapple = GetComponent<TongueGrapple>();
-        }
     }
 
     private void OnEnable()
@@ -392,13 +386,6 @@ public class FrogController : MonoBehaviour
 
     private void OnJumpStarted(InputAction.CallbackContext context)
     {
-        if (tongueGrapple != null && tongueGrapple.IsGrappling)
-        {
-            PerformGrappleJump();
-            tongueGrapple.ReleaseGrapple();
-            return;
-        }
-
         if (grounded)
         {
             isChargingJump = true;
@@ -479,30 +466,6 @@ public class FrogController : MonoBehaviour
 
         Vector3 direction = (normal + Vector3.up).normalized;
         body.AddForce(direction * wallClingJumpForce, ForceMode.Impulse);
-        RegisterJump();
-    }
-
-    private void PerformGrappleJump()
-    {
-        float momentum = body.mass * body.linearVelocity.magnitude;
-        float impulse = momentum * grappleJumpMomentumMultiplier;
-
-        Vector3 forward = GetMoveDirection();
-        if (forward.sqrMagnitude < 0.01f)
-        {
-            forward = body.linearVelocity;
-            forward.y = 0f;
-        }
-        if (forward.sqrMagnitude < 0.01f && cameraTransform != null)
-        {
-            forward = cameraTransform.forward;
-            forward.y = 0f;
-        }
-        forward = forward.sqrMagnitude < 0.01f ? transform.forward : forward.normalized;
-
-        Vector3 jump = Vector3.up * impulse + forward * impulse;
-        body.AddForce(jump, ForceMode.Impulse);
-        airJumpUsed = true;
         RegisterJump();
     }
 
